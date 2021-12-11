@@ -2,18 +2,31 @@
 const db = require('../../data/dbConfig') // Database connection // SQLite3 // Knex
 
 module.exports = {
+    findById,
+    create,
     getAll
 }
-//   getById,
-//   create,
 //   update,
 //   remove,
 
 
 // // Model
 function getAll() {
-    console.log('getAll')
+    // console.log('getAll')
     return db('users')
+}
+
+
+function findById(idArg) {
+    return db("users")
+        .where({ id: idArg })
+        .first();
+}
+
+
+async function create(argTask) {
+    const [id] = await db('users').insert(argTask)
+    return findById(id)
 }
 
 
@@ -23,8 +36,6 @@ function getAll() {
 
 
 
-// if stuck for more than 10-15 min, then use reference repos.
-
 
 // connect DB after npm i and branch
 // paste this into Keep into users/models
@@ -32,63 +43,12 @@ function getAll() {
 // use Thunder Client
 // just get all data to show up in json
 
-
-
-// How to get all*
-// in SQL:
-// SELECT * FROM employees 
-// WHERE notes 
-
-// OR 
-
-// SELECT * FROM users;
-
-// in VS:
-// // Router
-// router.get("/", (req, res) => {
-//   Users.getAll()
-//     .then(users => {
-//       res.status(200).json(users)
-//     })
-// })
-
-// // Model
-// function getAll() {
-//   console.log('getAll')
-//   return db('users')
-// }
-
-
 // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ // 
 // @@@@@@@@@@@@@@@@@@       @@@@@@@@@@@@@@@@@@@@@ // 
 // @@@@@@@@@@@@@@@@@@ NOTES @@@@@@@@@@@@@@@@@@@@@ // 
 // @@@@@@@@@@@@@@@@@@       @@@@@@@@@@@@@@@@@@@@@ // 
 // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ // 
 
-
-
-
-// const db = require('../../data/db-config') // Database connection // SQLite3 // Knex
-
-// module.exports = {
-//   get,
-//   getById,
-//   create,
-//   update,
-//   remove,
-// }
-
-// // __________ SQL / KNEX FLOW __________
-
-// // STEP 1 - In SQLite Studio, use the desired code for the desired output, check data to confirm it works.
-// // STEP 2 - Knex documentation.
-
-
-// // Get all posts.
-// // SELECT * FROM posts;
-// function get() {
-//   return db('posts')
-// }
 
 
 // // knex.select('id').from<User>('users'); // Resolves to Pick<User, "id">[]

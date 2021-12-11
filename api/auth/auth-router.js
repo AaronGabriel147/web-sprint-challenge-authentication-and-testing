@@ -43,16 +43,29 @@ the response body should include a string exactly as follows: "username and pass
 4- On FAILED registration due to the `username` being taken,
 the response body should include a string exactly as follows: "username taken".
 */
+// router.post('/register', (req, res) => {
+//   res.status(200).json({
+//     message: 'Registering user',
+//     user: req.body
+//   });
+// });
 
-router.post('/register', (req, res) => {
-  res.status(200).json({
-    message: 'Registering user',
-    user: req.body
-  });
-});
+router.post('/register', async (req, res, next) => {
+  // console.log('reg')
+  try {
+    const newUser = await Users.create(req.body); // req.body is the object that was sent in the request
 
-
-
+    if (!newUser) {
+      res.status(404).json({
+        message: "The post with the specified ID does not exist"
+      })
+    } else {
+      res.status(200).json(newUser)
+    }
+  } catch (err) {
+    next(err);
+  }
+})
 
 
 
