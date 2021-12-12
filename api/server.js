@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const session = require('express-session');
+
 
 const restrict = require('./middleware/restricted.js');
 
@@ -18,18 +18,13 @@ server.use('/api/auth', authRouter);
 server.use('/api/jokes', restrict, jokesRouter); // only logged-in users should have access!
 
 
-server.use(errorHandling) // will trap "".catch/500 errors" happening above
+server.use((err, req, res, next) => { // eslint-disable-line
+    res.status(err.status || 500).json({
+        message: err.message,
+        stack: err.stack,
+    });
+});
+
+
 
 module.exports = server;
-
-
-
-
-// *catch all 500 errors middleware* 
-function errorHandling(err, req, res, next) {
-    console.log('@@@***inside catch all 500***@@@'),
-        res.status(err.status || 500).json({
-            message: err.message,
-            status: 500
-        })
-}

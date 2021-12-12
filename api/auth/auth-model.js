@@ -4,10 +4,9 @@ const db = require('../../data/dbConfig') // Database connection // SQLite3 // K
 module.exports = {
     findById,
     create,
-    getAll
+    getAll,
+    findBy
 }
-//   update,
-//   remove,
 
 
 // // Model
@@ -17,10 +16,13 @@ function getAll() {
 }
 
 
+function findBy(filter) {
+    return db('users').where(filter);
+}
+
+
 function findById(idArg) {
-    return db("users")
-        .where({ id: idArg })
-        .first();
+    return db("users").where({ id: idArg }).first();
 }
 
 

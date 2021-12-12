@@ -1,8 +1,14 @@
 const router = require('express').Router();
 const Users = require('./auth-model')
-// const bcrypt = require('bcryptjs')
+
+// const checkAuthPayload = require('../middleware/restricted');
+
+const bcrypt = require('bcryptjs')
 // const jwt = require('jsonwebtoken')
+
+// const { jwtSecret } = require('../../config/secrets');
 // const { JWT_SECRET, NUM } = require('../../config/secrets') // I think????
+
 
 
 
@@ -16,9 +22,6 @@ router.get('/', (req, res) => {
       res.status(500).json({ message: 'Failed to get users', error })
     })
 });
-
-
-
 
 /*
 IMPLEMENT
@@ -52,21 +55,56 @@ the response body should include a string exactly as follows: "username taken".
 //   });
 // });
 
-router.post('/register', async (req, res, next) => {
-  // console.log('reg')
+// router.post('/register', async (req, res) => {
+//   let { username, password } = req.body
+
+//   const hash = bcrypt.hashSync(password, 8)       // hashes PW
+//   // password = hash                              // replaces PW with hash
+//   const user = { username, password: hash }
+
+//   try {
+//     const newUser = await Users.create(user);     // req.body is the object that was sent in the request
+//     if (!newUser) {
+//       res.status(404).json({
+//         message: "The post with the specified ID does not exist"
+//       })
+//     } else {
+//       res.status(200).json(newUser)
+//     }
+//   } catch (err) {
+//     console.log(err)
+//     res.status(500).json(err)
+//   }
+// })
+
+
+
+
+
+router.post('/register', async (req, res) => {
+
+  const { username, password } = req.body;       // Take whatever the user types
+  const hash = bcrypt.hashSync(password, 8);     // Encrypts the user's password
+  const user = { username, password: hash }      // Create a user object with the username and hashed password
+
   try {
-    const newUser = await Users.create(req.body); // req.body is the object that was sent in the request
-    if (!newUser) {
-      res.status(404).json({
-        message: "The post with the specified ID does not exist"
-      })
-    } else {
-      res.status(200).json(newUser)
-    }
+    const createdUser = await Users.create(user)    // add is a function in users-model.js ~~~ Knex = db('users').insert(user)
+    // console.log(createdUser)
+    res.status(201).json(createdUser)            // 201 / json = Created
   } catch (err) {
-    next(err);
+    res.status(500).json({ message: 'Error registering user', err });
   }
 })
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -93,9 +131,61 @@ the response body should include a string exactly as follows: "username and pass
 4- On FAILED login due to `username` not existing in the db, or `password` being incorrect,
 the response body should include a string exactly as follows: "invalid credentials".
 */
+// router.post('/login', (req, res) => {
+//   res.end('implement login, please!');
+// });
 
-router.post('/login', (req, res) => {
-  res.end('implement login, please!');
-});
+
+// ________________
+
+
+// router.post('/login', checkAuthPayload, (req, res, next) => {
+//   let { username, password } = req.body;
+
+//   Users.findBy({ username }) // it would be nice to have middleware do this
+//     .then(([user]) => {
+//       if (user && bcrypt.compareSync(password, user.password)) {
+//         const token = tokenBuilder(user);
+
+//         res.status(200).json({
+//           message: `Welcome back ${user.username}!`,
+//           token,
+//         });
+//       } else {
+//         next({ status: 401, message: 'Invalid Credentials' });
+//       }
+//     })
+//     .catch(next);
+// });
+
+
+
+
+
+
+//----------------------------------------------------------------------------//
+// This is a helper method that handles token signing. This is where we create
+// a new token. JWT consists of a Header, a Payload and a Signature. Note that
+// by default, the Payload (as well as the Header) are not encrypted. They are
+// base64 encoded which can be easily decoded by anyone without the secret.
+// Be sure not to store any sensitive data in the Payload (unless you encrypt
+// it first).
+//----------------------------------------------------------------------------//
+// module.exports = function (user) {
+//   const payload = {
+//     sub: user.id,
+//     username: user.username,
+//     role: user.role,
+//   }
+//   const options = {
+//     expiresIn: '1d',
+//   }
+//   return jwt.sign(payload, jwtSecret, options);
+// };
+
+
+
+
+
 
 module.exports = router;
