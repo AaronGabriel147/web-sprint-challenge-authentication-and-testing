@@ -84,13 +84,13 @@ the response body should include a string exactly as follows: "username taken".
 router.post('/register', async (req, res) => {
 
   const { username, password } = req.body;       // Take whatever the user types
-  const hash = bcrypt.hashSync(password, 8);     // Encrypts the user's password
+  const hash = bcrypt.hashSync(password, 8);     // Hashes the user's password
   const user = { username, password: hash }      // Create a user object with the username and hashed password
 
   try {
-    const createdUser = await Users.create(user)    // add is a function in users-model.js ~~~ Knex = db('users').insert(user)
+    const createdUser = await Users.create(user) // create is a helper method ~~~ Knex = db('users').insert(user)
     // console.log(createdUser)
-    res.status(201).json(createdUser)            // 201 / json = Created
+    res.status(201).json(createdUser)            // json = createdUser
   } catch (err) {
     res.status(500).json({ message: 'Error registering user', err });
   }
