@@ -14,7 +14,6 @@ the response body should include a string exactly as follows: "token invalid".
 // };
 
 
-
 // _____________
 
 module.exports = (req, res, next) => {
@@ -26,7 +25,7 @@ module.exports = (req, res, next) => {
   } else {
     next({
       status: 422,
-      message: 'Please provide username and password and the password shoud be alphanumeric',
+      message: 'Please provide username and password and the password should be alphanumeric',
     });
   }
 };

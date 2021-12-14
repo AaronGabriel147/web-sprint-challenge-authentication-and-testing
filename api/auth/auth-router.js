@@ -1,13 +1,13 @@
 const router = require('express').Router();
 const Users = require('./auth-model')
 
+const restricted = require('../middleware/restricted');
 // const checkAuthPayload = require('../middleware/restricted');
 
-const bcrypt = require('bcryptjs')
-// const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs'); // This goes wherever we use bcrypt
+const jwt = require('jsonwebtoken'); // installed this library // used in tokenbuilder
 
-// const { jwtSecret } = require('../../config/secrets');
-// const { JWT_SECRET, NUM } = require('../../config/secrets') // I think????
+const { JWT_SECRET } = require('../../config/secrets'); // Some have BCRYPT_ROUNDS, not sure why
 
 
 
@@ -23,7 +23,7 @@ router.get('/', (req, res) => {
     })
 });
 
-/*
+/* 
 IMPLEMENT
 You are welcome to build additional middlewares to help with the endpoint's functionality.
 DO NOT EXCEED 2^8 ROUNDS OF HASHING!
@@ -48,60 +48,23 @@ the response body should include a string exactly as follows: "username and pass
 4- On FAILED registration due to the `username` being taken,
 the response body should include a string exactly as follows: "username taken".
 */
-// router.post('/register', (req, res) => {
-//   res.status(200).json({
-//     message: 'Registering user',
-//     user: req.body
-//   });
-// });
-
-// router.post('/register', async (req, res) => {
-//   let { username, password } = req.body
-
-//   const hash = bcrypt.hashSync(password, 8)       // hashes PW
-//   // password = hash                              // replaces PW with hash
-//   const user = { username, password: hash }
-
-//   try {
-//     const newUser = await Users.create(user);     // req.body is the object that was sent in the request
-//     if (!newUser) {
-//       res.status(404).json({
-//         message: "The post with the specified ID does not exist"
-//       })
-//     } else {
-//       res.status(200).json(newUser)
-//     }
-//   } catch (err) {
-//     console.log(err)
-//     res.status(500).json(err)
-//   }
-// })
 
 
-
-
-
-router.post('/register', async (req, res) => {
+// Works = Creates a new user with a hashed PW
+router.post('/register', restricted, async (req, res) => {
 
   const { username, password } = req.body;       // Take whatever the user types
   const hash = bcrypt.hashSync(password, 8);     // Hashes the user's password
   const user = { username, password: hash }      // Create a user object with the username and hashed password
 
   try {
-    const createdUser = await Users.create(user) // create is a helper method ~~~ Knex = db('users').insert(user)
+    const createdUser = await Users.create(user) // create = Knex* db('users').insert(user)
     // console.log(createdUser)
     res.status(201).json(createdUser)            // json = createdUser
   } catch (err) {
     res.status(500).json({ message: 'Error registering user', err });
   }
 })
-
-
-
-
-
-
-
 
 
 
@@ -136,27 +99,28 @@ the response body should include a string exactly as follows: "invalid credentia
 // });
 
 
-// ________________
 
 
-// router.post('/login', checkAuthPayload, (req, res, next) => {
-//   let { username, password } = req.body;
+router.post('/login', restricted, (req, res, next) => {
+  let { username, password } = req.body;
 
-//   Users.findBy({ username }) // it would be nice to have middleware do this
-//     .then(([user]) => {
-//       if (user && bcrypt.compareSync(password, user.password)) {
-//         const token = tokenBuilder(user);
+  Users.findBy({ username })             // db('users').where(ARGUMENT); // No sure why it is an object
+    // console.log('username', { username })
+    .then((user) => {
+      console.log('user', user)        // user = [{id: 3, username: 'Epictetus', password: '2a$08$jG.wIGR2S4hxuyWNcBf9MuoC4y0dNy7qC/LbmtuFBSdIhWks2LhpG'}]
+      if (user && bcrypt.compareSync(password, user.password)) {
+        const token = tokenBuilder(user);
 
-//         res.status(200).json({
-//           message: `Welcome back ${user.username}!`,
-//           token,
-//         });
-//       } else {
-//         next({ status: 401, message: 'Invalid Credentials' });
-//       }
-//     })
-//     .catch(next);
-// });
+        res.status(200).json({
+          message: `Welcome back ${user.username}!`,
+          token,
+        });
+      } else {
+        next({ status: 401, message: 'Invalid Credentials' });
+      }
+    })
+    .catch(next);
+});
 
 
 
@@ -171,17 +135,18 @@ the response body should include a string exactly as follows: "invalid credentia
 // Be sure not to store any sensitive data in the Payload (unless you encrypt
 // it first).
 //----------------------------------------------------------------------------//
-// module.exports = function (user) {
-//   const payload = {
-//     sub: user.id,
-//     username: user.username,
-//     role: user.role,
-//   }
-//   const options = {
-//     expiresIn: '1d',
-//   }
-//   return jwt.sign(payload, jwtSecret, options);
-// };
+
+function tokenBuilder(user) {
+  const payload = {
+    sub: user.id,               // standard - subject, normally the user id
+    username: user.username,    // custom property
+    role: user.role,            // standard - The Date the token was issued, expressed in seconds since epoch.
+  }
+  const options = {
+    expiresIn: '5d',
+  }
+  return jwt.sign(payload, JWT_SECRET, options); // jwt.sign(payload, JWT_SECRET, options)
+};
 
 
 
