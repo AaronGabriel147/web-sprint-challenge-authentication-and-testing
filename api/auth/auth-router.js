@@ -59,7 +59,7 @@ router.post('/register', restricted, async (req, res) => {
 
   try {
     const createdUser = await Users.create(user) // create = Knex* db('users').insert(user)
-    // console.log(createdUser)
+    console.log('createdUser', createdUser)
     res.status(201).json(createdUser)            // json = createdUser
   } catch (err) {
     res.status(500).json({ message: 'Error registering user', err });
@@ -103,13 +103,18 @@ the response body should include a string exactly as follows: "invalid credentia
 
 router.post('/login', restricted, (req, res, next) => {
   let { username, password } = req.body;
+  // console.log('req.body', req.body) // req.body { username: 'Cato', password: '1234' }
 
   Users.findBy({ username })             // db('users').where(ARGUMENT); // No sure why it is an object
-    // console.log('username', { username })
-    .then((user) => {
+    // console.log('username line 108', username)
+
+    .then(([user]) => {
       console.log('user', user)        // user = [{id: 3, username: 'Epictetus', password: '2a$08$jG.wIGR2S4hxuyWNcBf9MuoC4y0dNy7qC/LbmtuFBSdIhWks2LhpG'}]
+      console.log(password, password)
       if (user && bcrypt.compareSync(password, user.password)) {
+        console.log('wkasdlfjlaksfjal;s')
         const token = tokenBuilder(user);
+        console.log('token', token)
 
         res.status(200).json({
           message: `Welcome back ${user.username}!`,

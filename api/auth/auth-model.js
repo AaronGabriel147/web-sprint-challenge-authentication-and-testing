@@ -9,7 +9,7 @@ module.exports = {
 }
 
 
-// // Model
+// Model
 function getAll() {
     // console.log('getAll')
     return db('users')
