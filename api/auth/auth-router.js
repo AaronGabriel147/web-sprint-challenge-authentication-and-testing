@@ -102,19 +102,14 @@ the response body should include a string exactly as follows: "invalid credentia
 
 
 router.post('/login', restricted, (req, res, next) => {
-  let { username, password } = req.body;
-  // console.log('req.body', req.body) // req.body { username: 'Cato', password: '1234' }
+  let { username, password } = req.body;                         // .log = req.body { username: 'Cato', password: '1234' }
 
-  Users.findBy({ username })             // db('users').where(ARGUMENT); // No sure why it is an object
-    // console.log('username line 108', username)
+  Users.findBy({ username })// QUESTION: Why is this an object?  // .log = Cato  // db('users').where(ARGUMENT); 
+    .then(([user]) => {     // QUESTION: Why does this have to be an array?
+      console.log('user password', user, password)               // .log = [{id: 3, username: 'Epictetus', password: '2a$08$jG.wIGR2S4hxuyWNcBf9MuoC4y0dNy7qC/LbmtuFBSdIhWks2LhpG'}]
+      if (user && bcrypt.compareSync(password, user.password)) { // .log = password = '1234' user.password = '2a$08$jG.wIGR2S4hxuyWNcBf9MuoC4y0dNy7qC/LbmtuFBSdIhWks2LhpG'
 
-    .then(([user]) => {
-      console.log('user', user)        // user = [{id: 3, username: 'Epictetus', password: '2a$08$jG.wIGR2S4hxuyWNcBf9MuoC4y0dNy7qC/LbmtuFBSdIhWks2LhpG'}]
-      console.log(password, password)
-      if (user && bcrypt.compareSync(password, user.password)) {
-        console.log('wkasdlfjlaksfjal;s')
-        const token = tokenBuilder(user);
-        console.log('token', token)
+        const token = tokenBuilder(user);                        // .log = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjYsInVzZXJuYW1lIjoiQ2F0byIsImlhdCI6MTYzOTUzODY4OSwiZXhwIjoxNjM5OTcwNjg5fQ.8727SnCj5J8qm0NP9kqZXJf-TyGN433kwS3yLKSk7_Y
 
         res.status(200).json({
           message: `Welcome back ${user.username}!`,
