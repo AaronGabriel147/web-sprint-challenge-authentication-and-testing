@@ -1,8 +1,8 @@
 const router = require('express').Router();
 const Users = require('./auth-model')
 
-const restricted = require('../middleware/restricted');
-// const checkAuthPayload = require('../middleware/restricted');
+const { checkValidRegister } = require('../middleware/restricted');
+
 
 const bcrypt = require('bcryptjs'); // This goes wherever we use bcrypt
 const jwt = require('jsonwebtoken'); // installed this library // used in tokenbuilder
@@ -51,8 +51,7 @@ the response body should include a string exactly as follows: "username taken".
 
 
 // Works = Creates a new user with a hashed PW
-router.post('/register', restricted, async (req, res) => {
-
+router.post('/register', checkValidRegister, async (req, res) => {
   const { username, password } = req.body;       // Take whatever the user types
   const hash = bcrypt.hashSync(password, 8);     // Hashes the user's password
   const user = { username, password: hash }      // Create a user object with the username and hashed password
@@ -65,8 +64,6 @@ router.post('/register', restricted, async (req, res) => {
     res.status(500).json({ message: 'Error registering user', err });
   }
 })
-
-
 
 
 
@@ -101,16 +98,16 @@ the response body should include a string exactly as follows: "invalid credentia
 
 
 
-router.post('/login', restricted, (req, res, next) => {
-  let { username, password } = req.body;                         // .log = req.body { username: 'Cato', password: '1234' }
+router.post('/login', (req, res, next) => {
+  let { username, password } = req.body;                         // .log = Cato 1234
+  // console.log('req.body.username', typeof req.body)
 
-  Users.findBy({ username })// QUESTION: Why is this an object?  // .log = Cato  // db('users').where(ARGUMENT); 
-    .then(([user]) => {     // QUESTION: Why does this have to be an array?
-      console.log('user password', user, password)               // .log = [{id: 3, username: 'Epictetus', password: '2a$08$jG.wIGR2S4hxuyWNcBf9MuoC4y0dNy7qC/LbmtuFBSdIhWks2LhpG'}]
-      if (user && bcrypt.compareSync(password, user.password)) { // .log = password = '1234' user.password = '2a$08$jG.wIGR2S4hxuyWNcBf9MuoC4y0dNy7qC/LbmtuFBSdIhWks2LhpG'
+  Users.findBy({ username })                                     // .log = Cato  // db('users').where(ARGUMENT); 
+    .then((user) => {
+      console.log('user password', user, password)               // .log = [{id: 3, username: 'Cato', password: '2a$08$j... etc'}]
+      if (user && bcrypt.compareSync(password, user.password)) { // .log = password = '1234' user.password = '2a$08$j... etc
 
-        const token = tokenBuilder(user);                        // .log = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjYsInVzZXJuYW1lIjoiQ2F0byIsImlhdCI6MTYzOTUzODY4OSwiZXhwIjoxNjM5OTcwNjg5fQ.8727SnCj5J8qm0NP9kqZXJf-TyGN433kwS3yLKSk7_Y
-
+        const token = tokenBuilder(user);                        // .log = 2a$08$j... etc
         res.status(200).json({
           message: `Welcome back ${user.username}!`,
           token,
@@ -119,8 +116,11 @@ router.post('/login', restricted, (req, res, next) => {
         next({ status: 401, message: 'Invalid Credentials' });
       }
     })
-    .catch(next);
+    .catch(() => {
+      next({ status: 500, message: 'Error logging in' });
+    });
 });
+
 
 
 
@@ -145,10 +145,8 @@ function tokenBuilder(user) {
   const options = {
     expiresIn: '5d',
   }
-  return jwt.sign(payload, JWT_SECRET, options); // jwt.sign(payload, JWT_SECRET, options)
+  return jwt.sign(payload, JWT_SECRET, options); // JWT_SECRET is an import
 };
-
-
 
 
 

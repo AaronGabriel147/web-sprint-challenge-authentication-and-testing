@@ -16,16 +16,23 @@ the response body should include a string exactly as follows: "token invalid".
 
 // _____________
 
-module.exports = (req, res, next) => {
-  const { username, password } = req.body;
-  const valid = Boolean(username && password && typeof password === "string");
+exports.checkValidRegister = async (req, res, next) => {
 
-  if (valid) {
-    next();
-  } else {
-    next({
-      status: 422,
-      message: 'Please provide username and password and the password should be alphanumeric',
-    });
+  await console.log('THIS WORKS?')
+  try {
+    const { username, password } = await req.body;
+    console.log('username, password in middleware', username, password);
+    const valid = Boolean(username && password); // True if username and password are not empty and password is a string
+
+    if (valid) { // 
+      next();
+    } else {
+      next({
+        status: 422,
+        message: 'fghjertydujrtyf',
+      });
+    }
+  } catch (err) {
+    res.status(500).json({ message: 'Error registering user', err });
   }
 };

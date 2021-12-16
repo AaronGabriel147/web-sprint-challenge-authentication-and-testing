@@ -16,13 +16,15 @@ function getAll() {
 }
 
 
-function findBy(filter) {
-    return db('users').where(filter);
+function findBy(argFilter) {
+    // console.log(typeof argFilter)
+    return db('users').where(argFilter).first(); //  without first it needs to be an array at the end point
+    // console.log(typeof info)
 }
 
 
 function findById(idArg) {
-    return db("users").where({ id: idArg }).first();
+    return db("users").where({ id: idArg }).first(); //  always .first when you want 1 thing
 }
 
 
